@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Форма записи</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body class="container mt-4">
+
+    <h2 class="mb-3">Создание / Редактирование записи</h2>
+
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="col-12">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'index' %}" class="btn btn-secondary">Назад</a>
+        </div>
+    </form>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const typeSelect = document.getElementById("id_type");
+    const categorySelect = document.getElementById("id_category");
+    const subcategorySelect = document.getElementById("id_subcategory");
+
+    function updateCategories(typeId, selectedCategoryId = null) {
+        fetch(`/get_categories/?type_id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                categorySelect.innerHTML = '<option value="">---------</option>';
+                data.categories.forEach(cat => {
+                    const option = document.createElement("option");
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    if (selectedCategoryId && option.value == selectedCategoryId) {
+                        option.selected = true;
+                    }
+                    categorySelect.appendChild(option);
+                });
+
+                // Очистить подкатегории
+                subcategorySelect.innerHTML = '<option value="">---------</option>';
+            });
+    }
+
+    function updateSubcategories(categoryId, selectedSubcatId = null) {
+        fetch(`/get_subcategories/?category_id=${categoryId}`)
+            .then(response => response.json())
+            .then(data => {
+                subcategorySelect.innerHTML = '<option value="">---------</option>';
+                data.subcategories.forEach(subcat => {
+                    const option = document.createElement("option");
+                    option.value = subcat.id;
+                    option.textContent = subcat.name;
+                    if (selectedSubcatId && option.value == selectedSubcatId) {
+                        option.selected = true;
+                    }
+                    subcategorySelect.appendChild(option);
+                });
+            });
+    }
+
+    // При изменении типа
+    typeSelect.addEventListener("change", function () {
+        updateCategories(this.value);
+    });
+
+    // При изменении категории
+    categorySelect.addEventListener("change", function () {
+        updateSubcategories(this.value);
+    });
+
+    // Подгрузка при загрузке страницы
+    const selectedCategoryId = categorySelect.getAttribute("data-selected");
+    const selectedSubcatId = subcategorySelect.getAttribute("data-selected");
+    const selectedTypeId = typeSelect.value;
+
+    if (selectedTypeId) {
+        updateCategories(selectedTypeId, selectedCategoryId);
+    }
+
+    if (selectedCategoryId) {
+        updateSubcategories(selectedCategoryId, selectedSubcatId);
+    }
+});
+</script>
+
+
+
+</body>
+</html>
